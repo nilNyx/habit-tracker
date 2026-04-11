@@ -6,9 +6,8 @@ import { HabitSchema } from "../schemas/habit.schema.js";
 
 
 const router = Router();
-router.use(authenticate);
 
-router.post('/', async (req, res, next) => {
+router.post('/', authenticate, async (req, res, next) => {
   try {
     const parse = HabitSchema.safeParse(req.body);
     if (!parse.success) {
@@ -36,7 +35,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // get own habit list
-router.get('/', async (req, res, next) => {
+router.get('/', authenticate, async (req, res, next) => {
   try {
     const habits = await prisma.habit.findMany({
       select: {
@@ -84,7 +83,7 @@ router.get('/public', async (req, res, next) => {
   }
 });
 
-router.patch('/:habitId', habitAuthorize, async (req, res, next) => {
+router.patch('/:habitId', authenticate, habitAuthorize, async (req, res, next) => {
   try {
     const habitId = Number(req.params.habitId);
     const body = req.body;
@@ -112,7 +111,7 @@ router.patch('/:habitId', habitAuthorize, async (req, res, next) => {
   }
 });
 
-router.delete('/:habitId', habitAuthorize, async (req, res, next) => {
+router.delete('/:habitId', authenticate, await habitAuthorize, async (req, res, next) => {
   try {
     const habitId: number = Number(req.params.habitId);
 

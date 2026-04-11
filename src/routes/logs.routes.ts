@@ -4,6 +4,7 @@ import { prisma } from "../prisma.js";
 import { habitAuthorize } from "../middleware/authorize.js";
 
 const router = Router();
+router.use(authenticate);
 
 router.post('/:habitId', habitAuthorize, async (req, res, next) => {
   try {

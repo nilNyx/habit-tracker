@@ -10,7 +10,7 @@ export const authorize = (req: Request<{id: string}>, res: Response, next: NextF
   res.status(403).json({ error: 'Denied' });
 };
 
-export const habitAuthorize = async (req: Request<{ habitId: number }>, res: Response, next: NextFunction) => {
+export const habitAuthorize = async (req: Request<{ habitId: string }>, res: Response, next: NextFunction) => {
   const habit = await prisma.habit.findFirst({
     where: { id: Number(req.params.habitId) }
   });
