@@ -22,3 +22,5 @@ router.post('/:habitId', habitAuthorize, async (req, res, next) => {
     next(err);
   }
 });
+
+export default router;
