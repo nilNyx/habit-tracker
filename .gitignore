@@ -4,3 +4,4 @@ node_modules
 .idea
 .env
 /src/generated/prisma
+/prisma/migrations
