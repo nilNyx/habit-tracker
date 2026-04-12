@@ -3,6 +3,7 @@ import { authenticate } from "../middleware/authenticate.js";
 import { prisma } from "../prisma.js";
 import { habitAuthorize } from "../middleware/authorize.js";
 import { HabitSchema } from "../schemas/habit.schema.js";
+import { IdSchema } from "../schemas/global.schema.js";
 
 
 const router = Router();
@@ -326,7 +327,7 @@ router.get('/public', async (req, res, next) => {
  */
 router.patch('/:habitId', authenticate, habitAuthorize, async (req, res, next) => {
   try {
-    const habitId = Number(req.params.habitId);
+    const habitId = IdSchema.parse(req.params.habitId);
     const body = req.body;
 
     const updatedHabit = await prisma.habit.update({
@@ -378,7 +379,7 @@ router.patch('/:habitId', authenticate, habitAuthorize, async (req, res, next) =
  */
 router.delete('/:habitId', authenticate, habitAuthorize, async (req, res, next) => {
   try {
-    const habitId: number = Number(req.params.habitId);
+    const habitId: number = IdSchema.parse(req.params.habitId);
 
     await prisma.habit.delete({ where: { id: habitId }});
 

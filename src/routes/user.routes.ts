@@ -4,6 +4,7 @@ import { authenticate } from "../middleware/authenticate.js";
 import { authorize } from "../middleware/authorize.js";
 import { upload } from "../middleware/upload.js";
 import type { User } from "../types/types.js";
+import {IdSchema} from "../schemas/global.schema.js";
 
 const router = Router();
 
@@ -149,7 +150,7 @@ router.get('/', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    const idParam: number = Number(req.params.id);
+    const idParam: number = IdSchema.parse(req.params.id);
     const user: User | null = await prisma.user.findUnique({ where: {id: idParam} });
 
     if (user) {
@@ -235,7 +236,7 @@ router.get('/:id', async (req, res, next) => {
  */
 router.patch('/:id', authorize, async (req, res, next) => {
   try {
-    const userId = Number(req.params.id);
+    const userId = IdSchema.parse(req.params.id);
     const body = req.body;
 
     const user = await prisma.user.update({
@@ -292,7 +293,7 @@ router.patch('/:id', authorize, async (req, res, next) => {
  */
 router.delete('/:id', authorize, async (req, res, next) => {
   try {
-    const userId: number = Number(req.params.id);
+    const userId: number = IdSchema.parse(req.params.id);
 
     await prisma.user.delete({ where: {id: userId }});
 
@@ -358,7 +359,7 @@ router.delete('/:id', authorize, async (req, res, next) => {
 router.post('/:id/avatar', authorize, upload.single('avatar'), async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'File Not Uploaded' });
+      return res.status(400).json({ code: 'FILE_MISSING', message: 'Avatar file is required' });
     }
 
     res.status(200).json({ uploaded: req.file.path });

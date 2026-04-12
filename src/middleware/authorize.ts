@@ -1,9 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../prisma.js";
+import {IdSchema} from "../schemas/global.schema.js";
 
 
 export const authorize = (req: Request<{id: string}>, res: Response, next: NextFunction) => {
-  if (req.userId === Number(req.params.id)) {
+  if (req.userId === IdSchema.parse(req.params.id)) {
     next();
     return;
   }
@@ -12,7 +13,7 @@ export const authorize = (req: Request<{id: string}>, res: Response, next: NextF
 
 export const habitAuthorize = async (req: Request<{ habitId: string }>, res: Response, next: NextFunction) => {
   const habit = await prisma.habit.findFirst({
-    where: { id: Number(req.params.habitId) }
+    where: { id: IdSchema.parse(req.params.habitId) }
   });
 
   if (habit === null) {

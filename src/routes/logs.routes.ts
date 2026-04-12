@@ -31,7 +31,7 @@ router.post('/:habitId', habitAuthorize, async (req, res, next) => {
     const habitLog = await prisma.habitLog.create({
       data: {
         date: today,
-        habitId: Number(req.params.habitId)
+        habitId: IdSchema.parse(req.params.habitId)
       }
     });
 
