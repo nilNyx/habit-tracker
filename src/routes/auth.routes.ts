@@ -40,17 +40,14 @@ const router = Router();
  */
 router.post('/register', registerLimiter, async (req, res, next) => {
   try {
-    const parse = UserSchema.safeParse(req.body);
+    const parse = UserSchema.parse(req.body);
 
-    if (!parse.success) {
-      return res.status(422).json({ errors: parse.error.issues.map(i => i.message) });
-    }
-    const hashedPassword = await argon2.hash(parse.data.password);
+    const hashedPassword = await argon2.hash(parse.password);
 
     const newUser = await prisma.user.create({
       data: {
-        name: parse.data.name,
-        email: parse.data.email,
+        name: parse.name,
+        email: parse.email,
         password: hashedPassword
       },
       select: {
@@ -97,15 +94,11 @@ router.post('/register', registerLimiter, async (req, res, next) => {
  */
 router.post('/login', loginLimiter, async (req, res, next) => {
   try {
-    const parse = LoginSchema.safeParse(req.body);
+    const parse = LoginSchema.parse(req.body);
 
-    if (!parse.success) {
-      return res.status(422).json({ errors: parse.error.issues.map(i => i.message) });
-    }
+    const user: User | null = await prisma.user.findUnique({ where: { email: parse.email }});
 
-    const user: User | null = await prisma.user.findUnique({ where: { email: parse.data.email }});
-
-    if (user === null || !(await argon2.verify(user.password, parse.data.password))) {
+    if (user === null || !(await argon2.verify(user.password, parse.password))) {
       return res.status(400).json({ error: 'Wrong email or password' });
     }
 
@@ -145,12 +138,31 @@ router.post('/login', loginLimiter, async (req, res, next) => {
  * @openapi
  * /auth/refresh:
  *   post:
- *     summary: Refreshing access token
+ *     summary: Refresh access token using refresh token cookie
+ *
  *     responses:
  *       200:
- *         description: Returns new access token
+ *         description: New access token generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *
  *       401:
- *         description: JSON Web Token expired, malformed, or used before it's signed
+ *         description: Invalid or expired refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: string
+ *                   example: UNAUTHORIZED
+ *                 message:
+ *                   type: string
  */
 router.post('/refresh', async (req, res, next) => {
   try {
@@ -161,7 +173,7 @@ router.post('/refresh', async (req, res, next) => {
     }
     const payload = jwt.verify(cookieRefreshToken, process.env.JWT_SECRET!) as { userId: number };
 
-    const refreshToken = await prisma.refreshToken.findFirst({
+    const refreshToken = await prisma.refreshToken.findUnique({
       where: {
         token: cookieRefreshToken
       },
@@ -191,26 +203,25 @@ router.post('/refresh', async (req, res, next) => {
  * @openapi
  * /auth/logout:
  *   post:
- *     summary: Deleting the refresh token
- *     parameters:
- *       - in: query
- *         name: page
- *         required: false
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         required: false
- *         schema:
- *           type: integer
- *       - in: query
- *         name: search
- *         required: false
- *         schema:
- *           type: string
+ *     summary: Logout user and delete refresh token
+ *
  *     responses:
- *       200:
- *         description: Returns list of users
+ *       204:
+ *         description: Successfully logged out
+ *
+ *       401:
+ *         description: Refresh token is missing or invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: string
+ *                   example: UNAUTHORIZED
+ *                 message:
+ *                   type: string
+ *
  *       500:
  *         description: Internal server error
  */
@@ -223,7 +234,7 @@ router.post('/logout', async (req, res, next) => {
       return;
     }
 
-    await prisma.refreshToken.delete({
+    await prisma.refreshToken.deleteMany({
       where: {
         token: cookieRefreshToken
       }
