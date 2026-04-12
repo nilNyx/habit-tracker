@@ -20,19 +20,49 @@ router.use(authenticate);
  *         required: false
  *         schema:
  *           type: integer
+ *           example: 1
+ *         description: Page number
+ *
  *       - in: query
  *         name: limit
  *         required: false
  *         schema:
  *           type: integer
+ *           example: 10
+ *         description: Number of users per page
+ *
  *       - in: query
  *         name: search
  *         required: false
  *         schema:
  *           type: string
+ *           example: john
+ *         description: Search users by name
+ *
  *     responses:
  *       200:
- *         description: Returns list of users
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         format: int32
+ *                       name:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *
  *       500:
  *         description: Internal server error
  */
@@ -76,11 +106,44 @@ router.get('/', async (req, res, next) => {
  *         required: true
  *         schema:
  *           type: integer
+ *           format: int32
+ *         description: User ID
+ *
  *     responses:
  *       200:
- *         description: Returns exact user by id
+ *         description: User found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       format: int32
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: string
+ *                   example: USER_NOT_FOUND
+ *                 message:
+ *                   type: string
+ *
  *       500:
  *         description: Internal server error
  */
@@ -107,13 +170,16 @@ router.get('/:id', async (req, res, next) => {
  * @openapi
  * /users/{id}:
  *   patch:
- *     summary: Updates account info
+ *     summary: Update user account info
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *           format: int32
+ *         description: User ID
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -125,13 +191,45 @@ router.get('/:id', async (req, res, next) => {
  *                 type: string
  *               email:
  *                 type: string
+ *             description: Fields to update (partial update allowed)
+ *
  *     responses:
  *       200:
- *         description: Updates account info
+ *         description: User successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Updated
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       format: int32
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *
+ *       400:
+ *         description: Invalid request data
+ *
  *       401:
  *         description: Unauthorized
+ *
  *       403:
  *         description: Access denied
+ *
+ *       404:
+ *         description: User not found
+ *
  *       500:
  *         description: Internal server error
  */
@@ -163,20 +261,32 @@ router.patch('/:id', authorize, async (req, res, next) => {
  * @openapi
  * /users/{id}:
  *   delete:
- *     summary: Deletes the account
+ *     summary: Delete user account
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *           format: int32
+ *         description: User ID
+ *
  *     responses:
  *       204:
- *         description: Deletes the account
+ *         description: User deleted successfully
+ *
+ *       400:
+ *         description: Invalid user ID
+ *
  *       401:
  *         description: Unauthorized
+ *
  *       403:
  *         description: Access denied
+ *
+ *       404:
+ *         description: User not found
+ *
  *       500:
  *         description: Internal server error
  */
@@ -196,34 +306,59 @@ router.delete('/:id', authorize, async (req, res, next) => {
  * @openapi
  * /users/{id}/avatar:
  *   post:
- *     summary: Uploading an avatar
+ *     summary: Upload user avatar
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *           format: int32
+ *         description: User ID
+ *
  *     requestBody:
  *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
+ *             type: object
+ *             required:
+ *               - avatar
  *             properties:
  *               avatar:
  *                 type: string
  *                 format: binary
+ *
  *     responses:
  *       200:
- *         description: Uploading the given avatar
+ *         description: Avatar uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 uploaded:
+ *                   type: string
+ *
+ *       400:
+ *         description: Avatar file is missing or invalid
+ *
  *       401:
- *         description: Unauthorized or file no uploaded
+ *         description: Unauthorized
+ *
+ *       403:
+ *         description: Access denied
+ *
+ *       404:
+ *         description: User not found
+ *
  *       500:
  *         description: Internal server error
  */
 router.post('/:id/avatar', authorize, upload.single('avatar'), async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(401).json({ error: 'File Not Uploaded' });
+      return res.status(400).json({ error: 'File Not Uploaded' });
     }
 
     res.status(200).json({ uploaded: req.file.path });
