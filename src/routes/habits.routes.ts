@@ -9,16 +9,11 @@ const router = Router();
 
 router.post('/', authenticate, async (req, res, next) => {
   try {
-    const parse = HabitSchema.safeParse(req.body);
-    if (!parse.success) {
-      return res.status(422).json({
-        errors: parse.error.issues.map(i => i.message)
-      });
-    }
+    const parse = HabitSchema.parse(req.body);
 
     const newHabit = await prisma.habit.create({
       data: {
-        name: parse.data.name,
+        name: parse.name,
         userId: req.userId
       },
       select: {
