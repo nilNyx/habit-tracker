@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
 import { prisma } from "../prisma.js";
 import { habitAuthorize } from "../middleware/authorize.js";
+import {IdSchema} from "../schemas/global.schema.js";
 
 const router = Router();
 router.use(authenticate);
