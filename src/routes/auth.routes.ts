@@ -190,7 +190,7 @@ router.post('/refresh', async (req, res, next) => {
 /**
  * @openapi
  * /auth/logout:
- *   get:
+ *   post:
  *     summary: Deleting the refresh token
  *     parameters:
  *       - in: query

@@ -6,6 +6,23 @@ import { habitAuthorize } from "../middleware/authorize.js";
 const router = Router();
 router.use(authenticate);
 
+/**
+ * @openapi
+ * /logs/{habitId}:
+ *   post:
+ *     summary: Refreshing access token
+ *     responses:
+ *       201:
+ *         description: Mark habit as done
+ *       401:
+ *         description: JSON Web Token expired, malformed, or used before it's signed
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Habit not found
+ *       409:
+ *         description: Already marked the habit as done for today
+ */
 router.post('/:habitId', habitAuthorize, async (req, res, next) => {
   try {
     const today = new Date();
