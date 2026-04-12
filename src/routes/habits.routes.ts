@@ -111,7 +111,7 @@ router.patch('/:habitId', authenticate, habitAuthorize, async (req, res, next) =
   }
 });
 
-router.delete('/:habitId', authenticate, await habitAuthorize, async (req, res, next) => {
+router.delete('/:habitId', authenticate, habitAuthorize, async (req, res, next) => {
   try {
     const habitId: number = Number(req.params.habitId);
 

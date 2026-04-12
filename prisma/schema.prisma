@@ -15,13 +15,14 @@ datasource db {
 model User {
   id        Int      @id             @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String
   password  String
   createdAt DateTime @default(now()) @map("created_at")
 
   RefreshTokens RefreshToken[]
   Habits        Habit[]
 
+  @@unique([email], map: "user_email_unique")
   @@map("users")
 }
 
@@ -51,5 +52,5 @@ model HabitLog {
 
   habit   Habit    @relation(fields: [habitId], references: [id])
 
-  @@unique([habitId, date])
+  @@unique([habitId, date], map: "habit_log_per_day")
 }

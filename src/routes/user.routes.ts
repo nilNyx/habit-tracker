@@ -59,8 +59,8 @@ router.get('/', async (req, res, next) => {
       skip: (page - 1) * limit
       });
 
-    res.status(200).json({users: users});
-  } catch(err) {
+    res.status(200).json({ users: users });
+  } catch (err) {
     next(err);
   }
 });
@@ -90,15 +90,15 @@ router.get('/:id', async (req, res, next) => {
     const user: User | null = await prisma.user.findUnique({ where: {id: idParam} });
 
     if (user) {
-      return res.json({user: {
+      return res.json({ user: {
         id: user.id,
         name: user.name,
         email: user.email,
         createdAt: user.createdAt
       }});
     }
-    res.status(404).json({error: 'Not Found'});
-  } catch(err) {
+    res.status(404).json({ error: 'Not Found' });
+  } catch (err) {
     next(err);
   }
 });
@@ -148,7 +148,7 @@ router.patch('/:id', authorize, async (req, res, next) => {
         }
       });
 
-    res.status(200).json({message: 'Updated', user: {
+    res.status(200).json({ message: 'Updated', user: {
       id: user.id,
       name: user.name,
       email: user.email,
@@ -184,7 +184,7 @@ router.delete('/:id', authorize, async (req, res, next) => {
   try {
     const userId: number = Number(req.params.id);
 
-    await prisma.user.delete({where: {id: userId}});
+    await prisma.user.delete({ where: {id: userId }});
 
     res.status(204).end();
   } catch (err) {
@@ -223,10 +223,10 @@ router.delete('/:id', authorize, async (req, res, next) => {
 router.post('/:id/avatar', authorize, upload.single('avatar'), async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(401).json({error: 'File Not Uploaded'});
+      return res.status(401).json({ error: 'File Not Uploaded' });
     }
 
-    res.status(200).json({uploaded: req.file.path});
+    res.status(200).json({ uploaded: req.file.path });
   } catch (err) {
     next(err);
   }
