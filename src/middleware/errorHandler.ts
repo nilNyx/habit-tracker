@@ -31,13 +31,13 @@ export function errorHandler(
     }
   }
   if (err instanceof jwt.TokenExpiredError) {
-    return res.status(401).json({ error: 'TOKEN_EXPIRED' });
+    return res.status(401).json({ code: 'TOKEN_EXPIRED', message: 'Token expired' });
   }
   if (err instanceof jwt.NotBeforeError) {
-    return res.status(401).json({ error: 'NOT_BEFORE' });
+    return res.status(401).json({ code: 'NOT_BEFORE', message: 'Token not active yet' });
   }
   if (err instanceof jwt.JsonWebTokenError) {
-    return res.status(401).json({ error: 'JWT_MALFORMED' });
+    return res.status(401).json({ code: 'JWT_MALFORMED', message: 'Invalid token' });
   }
 
   if (err instanceof ZodError) {
@@ -49,6 +49,6 @@ export function errorHandler(
       })),
     });
   }
-
+  console.log(err)
   res.status(500).json({ error: 'Internal Server Error' });
 }
